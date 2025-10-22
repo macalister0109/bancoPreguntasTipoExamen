@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Preguntas - Especialidad de Programación EMTP Chile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(5px);
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        .correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+        }
+        .incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+        }
+        /* Animación para entrada de elementos */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Pantalla de Inicio -->
+        <div id="start-screen" class="card rounded-2xl p-8 shadow-2xl text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Banco de Preguntas</h1>
+            <p class="text-lg text-gray-600 mb-8">Especialidad de Programación - EMTP Chile</p>
+            <div id="year-selection" class="flex flex-col md:flex-row gap-4 justify-center">
+                <!-- Los botones de selección de año se insertarán aquí -->
+            </div>
+        </div>
+
+        <!-- Pantalla de Selección de Módulo -->
+        <div id="module-selection-screen" class="hidden card rounded-2xl p-8 shadow-2xl">
+            <button onclick="goBack('start-screen')" class="absolute top-4 left-4 text-blue-500 hover:text-blue-700 font-medium">&larr; Volver</button>
+            <h2 id="module-selection-title" class="text-2xl font-bold text-center text-gray-800 mb-6"></h2>
+            <div id="module-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Los botones de selección de módulo se insertarán aquí -->
+            </div>
+        </div>
+
+        <!-- Pantalla del Cuestionario -->
+        <div id="quiz-screen" class="hidden card rounded-2xl p-6 md:p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="goBack('module-selection-screen')" class="text-blue-500 hover:text-blue-700 font-medium">&larr; Cambiar Módulo</button>
+                <div class="text-right">
+                    <p id="quiz-title" class="text-xl font-semibold text-gray-800"></p>
+                    <p id="question-counter" class="text-gray-500"></p>
+                </div>
+            </div>
+            <div id="question-container" class="mt-4">
+                <!-- La pregunta actual se insertará aquí -->
+            </div>
+            <div id="options-container" class="mt-6 space-y-3">
+                <!-- Las opciones de respuesta se insertarán aquí -->
+            </div>
+            <div id="feedback-container" class="hidden mt-6 p-4 rounded-lg text-sm">
+                <!-- La retroalimentación se insertará aquí -->
+            </div>
+            <button id="next-question-btn" class="hidden btn-primary text-white font-bold py-2 px-6 rounded-lg w-full mt-6">Siguiente Pregunta</button>
+        </div>
+        
+        <!-- Pantalla de Resultados -->
+        <div id="results-screen" class="hidden card rounded-2xl p-8 shadow-2xl text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Resultados Finales</h2>
+            <p id="score-text" class="text-5xl font-bold text-blue-600 my-6"></p>
+            <p id="score-percentage" class="text-xl text-gray-600 mb-8"></p>
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <button onclick="restartQuiz()" class="btn-primary text-white font-bold py-3 px-6 rounded-lg">Repetir Cuestionario</button>
+                <button onclick="goBack('start-screen')" class="bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors">Volver al Inicio</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = {
+            "Tercero Medio": {
+                "M1: Programación y Estructuras de Datos": [
+                    {
+                        question: "¿Qué es un algoritmo?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "Una secuencia finita de pasos lógicos para resolver un problema.", correct: true },
+                            { text: "Un lenguaje de programación compilado.", correct: false },
+                            { text: "Un componente de hardware de un computador.", correct: false },
+                            { text: "Un tipo de estructura de datos.", correct: false }
+                        ],
+                        rationale: "Un algoritmo es la base de cualquier programa, definiendo el 'cómo' resolver una tarea específica de manera estructurada."
+                    },
+                    {
+                        question: "Una constante es una variable cuyo valor no puede ser modificado durante la ejecución del programa.",
+                        type: "true-false",
+                        options: [
+                            { text: "Verdadero", correct: true },
+                            { text: "Falso", correct: false }
+                        ],
+                        rationale: "Las constantes se utilizan para almacenar valores fijos, como el valor de PI, garantizando que no cambien accidentalmente."
+                    },
+                    {
+                        question: "¿Qué tipo de dato es más adecuado para almacenar el nombre completo de una persona?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "String (cadena de texto)", correct: true },
+                            { text: "Integer (entero)", correct: false },
+                            { text: "Boolean (booleano)", correct: false },
+                            { text: "Char (carácter)", correct: false }
+                        ],
+                        rationale: "El tipo 'String' está diseñado para almacenar secuencias de caracteres, como nombres, frases o párrafos."
+                    },
+                    {
+                        question: "Ordena los pasos para un algoritmo que calcula el promedio de tres notas:",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "1. Leer 3 notas, 2. Sumar las notas, 3. Dividir la suma por 3, 4. Mostrar resultado", correct: true },
+                            { text: "1. Dividir por 3, 2. Leer notas, 3. Sumar, 4. Mostrar resultado", correct: false },
+                            { text: "1. Leer 3 notas, 2. Dividir por 3, 3. Sumar, 4. Mostrar resultado", correct: false },
+                            { text: "1. Mostrar resultado, 2. Leer notas, 3. Sumar, 4. Dividir por 3", correct: false }
+                        ],
+                        rationale: "El proceso lógico es obtener los datos, procesarlos en el orden correcto (suma primero, luego división) y finalmente mostrar la salida."
+                    },
+                    {
+                        question: "¿Qué bucle es ideal cuando se conoce de antemano el número exacto de iteraciones?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "for", correct: true },
+                            { text: "while", correct: false },
+                            { text: "do-while", correct: false },
+                            { text: "if-else", correct: false }
+                        ],
+                        rationale: "El bucle 'for' está estructurado con un inicializador, una condición y un incremento, lo que lo hace perfecto para recorrer secuencias con un número conocido de elementos."
+                    },
+                    {
+                        question: "En la mayoría de los lenguajes de programación, el primer elemento de un arreglo se encuentra en el índice 0.",
+                        type: "true-false",
+                        options: [
+                            { text: "Verdadero", correct: true },
+                            { text: "Falso", correct: false }
+                        ],
+                        rationale: "La indexación basada en cero es un estándar en lenguajes como C, Java, Python y JavaScript."
+                    },
+                    {
+                        question: "¿Cuál de las siguientes estructuras de datos sigue el principio LIFO (Last-In, First-Out)?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "Pila (Stack)", correct: true },
+                            { text: "Cola (Queue)", correct: false },
+                            { text: "Arreglo (Array)", correct: false },
+                            { text: "Lista enlazada", correct: false }
+                        ],
+                        rationale: "Una Pila (Stack) funciona como el botón 'deshacer' en un editor: la última acción realizada es la primera en ser revertida."
+                    },
+                    {
+                        question: "Un sistema de gestión de turnos para ser atendido en una oficina es un ejemplo real de una:",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "Cola (Queue)", correct: true },
+                            { text: "Pila (Stack)", correct: false },
+                            { text: "Árbol binario", correct: false },
+                            { text: "Grafo", correct: false }
+                        ],
+                        rationale: "Una Cola (Queue) sigue el principio FIFO (First-In, First-Out), igual que una fila de personas."
+                    },
+                    {
+                        question: "El pseudocódigo es un lenguaje de programación que puede ser ejecutado directamente por un computador.",
+                        type: "true-false",
+                        options: [
+                            { text: "Falso", correct: true },
+                            { text: "Verdadero", correct: false }
+                        ],
+                        rationale: "El pseudocódigo es una herramienta de diseño para planificar un algoritmo en lenguaje natural antes de escribirlo en un lenguaje de programación real."
+                    },
+                    {
+                        question: "¿Cuál de los siguientes es un operador de comparación para verificar si dos valores son DISTINTOS?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "!=", correct: true },
+                            { text: "==", correct: false },
+                            { text: "=", correct: false },
+                            { text: "><", correct: false }
+                        ],
+                        rationale: "El operador '!=' (no igual) es estándar en muchos lenguajes para la comparación de desigualdad."
+                    },
+                     {
+                        question: "¿Qué es la recursividad en programación?",
+                        type: "multiple-choice",
+                        options: [
+                            { text: "Una función que se llama a sí misma para resolver un problema.", correct: true },
+                            { text: "Un bucle que se ejecuta infinitamente.", correct: false },
+                            { text: "Una variable que puede almacenar múltiples tipos de datos.", correct: false },
+                            { text: "El proceso de compilar código a lenguaje máquina.", correct: false }
+                        ],
+                        rationale: "La recursividad descompone un problema en subproblemas más pequeños del mismo tipo, hasta llegar a un caso base que se puede resolver directamente."
+                    }
+                ],
+                "M2: Instalación y Configuración de Equipos": [
+                    { question: "¿Cuál es la función principal de la Placa Madre (Motherboard)?", type: "multiple-choice", options: [ { text: "Conectar e interconectar todos los componentes del computador.", correct: true }, { text: "Almacenar permanentemente el sistema operativo.", correct: false }, { text: "Realizar todos los cálculos lógicos y aritméticos.", correct: false }, { text: "Proporcionar energía eléctrica a la UCP.", correct: false } ], rationale: "La placa madre es el circuito principal que integra y permite la comunicación entre la CPU, RAM, almacenamiento y otros periféricos." },
+                    { question: "La memoria RAM es un tipo de almacenamiento volátil.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Es volátil porque requiere energía para mantener la información almacenada; al apagar el PC, su contenido se pierde." },
+                    { question: "¿Qué es el proceso POST (Power-On Self-Test)?", type: "multiple-choice", options: [ { text: "Un diagnóstico inicial del hardware que se ejecuta al encender el PC.", correct: true }, { text: "El proceso de instalación de un nuevo sistema operativo.", correct: false }, { text: "Un software para medir el rendimiento de la tarjeta gráfica.", correct: false }, { text: "La primera pantalla que muestra el sistema operativo al cargar.", correct: false } ], rationale: "El POST verifica que componentes básicos como la memoria, el teclado y la CPU funcionen correctamente antes de cargar el SO." },
+                    { question: "La pasta térmica se aplica entre la CPU y el disipador para mejorar la transferencia de calor.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "La pasta térmica llena las imperfecciones microscópicas entre las dos superficies, asegurando una disipación de calor eficiente y evitando el sobrecalentamiento." },
+                    { question: "¿Qué es un 'driver' o controlador?", type: "multiple-choice", options: [ { text: "Un software que permite al sistema operativo comunicarse con un dispositivo de hardware.", correct: true }, { text: "Un tipo de destornillador usado para ensamblar computadores.", correct: false }, { text: "Un cable que conecta el monitor a la tarjeta de video.", correct: false }, { text: "La unidad de almacenamiento principal del sistema.", correct: false } ], rationale: "Cada dispositivo (impresora, tarjeta gráfica, etc.) necesita su propio driver para que el SO sepa cómo controlarlo." },
+                    { question: "¿Cuál es una ventaja principal de un SSD (Solid State Drive) sobre un HDD (Hard Disk Drive)?", type: "multiple-choice", options: [ { text: "Mayor velocidad de lectura y escritura.", correct: true }, { text: "Mayor capacidad de almacenamiento por el mismo precio.", correct: false }, { text: "Mayor vida útil bajo escritura intensiva.", correct: false }, { text: "Menor costo por gigabyte.", correct: false } ], rationale: "Al no tener partes móviles, los SSD acceden a los datos de forma casi instantánea, mejorando drásticamente los tiempos de carga." },
+                    { question: "La BIOS/UEFI es el primer software que se ejecuta al encender un computador.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "La BIOS o su sucesor UEFI es el firmware que inicializa el hardware y carga el sistema operativo desde una unidad de almacenamiento." },
+                    { question: "Un ejemplo de un dispositivo periférico de entrada es:", type: "multiple-choice", options: [ { text: "Teclado", correct: true }, { text: "Monitor", correct: false }, { text: "Impresora", correct: false }, { text: "Parlantes", correct: false } ], rationale: "Los dispositivos de entrada, como el teclado y el mouse, envían datos al computador para ser procesados." },
+                    { question: "La electricidad estática puede dañar permanentemente los componentes electrónicos sensibles.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Por eso es crucial usar una pulsera antiestática o tocar una superficie metálica para descargarse antes de manipular hardware." },
+                    { question: "¿Qué función cumple la Fuente de Poder (PSU)?", type: "multiple-choice", options: [ { text: "Convertir la corriente alterna de la pared a corriente continua para los componentes.", correct: true }, { text: "Enfriar la Unidad Central de Procesamiento (CPU).", correct: false }, { text: "Almacenar datos de forma temporal.", correct: false }, { text: "Conectar el computador a la red de internet.", correct: false } ], rationale: "La PSU es vital ya que suministra la energía necesaria, en los voltajes correctos, a todas las partes del computador." },
+                    { question: "Formatear un disco duro borra todos los datos que contiene.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Formatear prepara una unidad de almacenamiento para su uso inicial y elimina toda la información existente en ella." }
+                ],
+                "M3: Soporte a Usuarios y Productividad": [
+                    { question: "¿Qué metodología ágil utiliza un tablero visual (To Do, In Progress, Done) para gestionar el flujo de trabajo?", type: "multiple-choice", options: [ { text: "Kanban", correct: true }, { text: "Scrum", correct: false }, { text: "Cascada (Waterfall)", correct: false }, { text: "Extreme Programming (XP)", correct: false } ], rationale: "Kanban se centra en la visualización del trabajo y en limitar el trabajo en progreso para optimizar el flujo." },
+                    { question: "Git es un sistema de control de versiones.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Git permite a los desarrolladores rastrear cambios en el código, colaborar y revertir a versiones anteriores si es necesario." },
+                    { question: "¿Qué significa el término SaaS (Software as a Service)?", type: "multiple-choice", options: [ { text: "Un modelo donde el software se aloja en la nube y se accede a través de internet.", correct: true }, { text: "Un software que se instala localmente desde un CD-ROM.", correct: false }, { text: "Un tipo de hardware especializado para servidores.", correct: false }, { text: "Un lenguaje de programación para aplicaciones de productividad.", correct: false } ], rationale: "Ejemplos de SaaS incluyen Google Workspace, Microsoft 365 y Trello, donde los usuarios pagan una suscripción." },
+                    { question: "El objetivo principal de una Mesa de Ayuda (HelpDesk) es:", type: "multiple-choice", options: [ { text: "Proporcionar un punto central de contacto para que los usuarios reciban asistencia técnica.", correct: true }, { text: "Desarrollar nuevo software para la empresa.", correct: false }, { text: "Vender hardware y periféricos a los empleados.", correct: false }, { text: "Realizar el mantenimiento preventivo de los servidores.", correct: false } ], rationale: "Centraliza la gestión de incidentes y solicitudes de servicio, mejorando la eficiencia del soporte." },
+                    { question: "Realizar copias de seguridad (backups) es un ejemplo de mantenimiento correctivo.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "Las copias de seguridad son una tarea de mantenimiento preventivo, para evitar la pérdida de datos antes de que ocurra un fallo." },
+                    { question: "¿Cuál es un beneficio clave del control de versiones con herramientas como Git?", type: "multiple-choice", options: [ { text: "Facilitar la colaboración entre múltiples desarrolladores.", correct: true }, { text: "Aumentar la velocidad de ejecución del programa final.", correct: false }, { text: "Reducir la necesidad de escribir comentarios en el código.", correct: false }, { text: "Eliminar automáticamente los errores del código.", correct: false } ], rationale: "Permite que varios programadores trabajen en el mismo proyecto de forma simultánea y organizada, fusionando sus cambios." },
+                    { question: "TeamViewer y AnyDesk son ejemplos de software para:", type: "multiple-choice", options: [ { text: "Soporte remoto", correct: true }, { text: "Edición de video", correct: false }, { text: "Gestión de bases de datos", correct: false }, { text: "Diseño gráfico", correct: false } ], rationale: "Estas herramientas permiten a un técnico controlar el computador de un usuario a distancia para diagnosticar y resolver problemas." },
+                    { question: "Un 'ticket' en un sistema de soporte se refiere a:", type: "multiple-choice", options: [ { text: "Un registro único para un incidente o solicitud de un usuario.", correct: true }, { text: "La factura de compra de un equipo informático.", correct: false }, { text: "Un error de programación en una aplicación.", correct: false }, { text: "Una licencia de software.", correct: false } ], rationale: "El sistema de tickets permite rastrear el estado de cada solicitud desde que se reporta hasta que se resuelve." },
+                    { question: "Actualizar el antivirus y aplicar parches de seguridad son tareas de mantenimiento preventivo.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Estas acciones se realizan proactivamente para prevenir problemas de seguridad y malware." },
+                    { question: "El phishing es una técnica de ingeniería social para:", type: "multiple-choice", options: [ { text: "Engañar a los usuarios para que revelen información confidencial.", correct: true }, { text: "Optimizar el rendimiento de la red local.", correct: false }, { text: "Instalar físicamente un componente de hardware.", correct: false }, { text: "Mejorar la velocidad de internet.", correct: false } ], rationale: "Generalmente se realiza a través de correos electrónicos o sitios web falsos que imitan a entidades legítimas." },
+                    { question: "Un 'bug' de software es un error o defecto en un programa que causa un resultado incorrecto o inesperado.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "El proceso de encontrar y corregir bugs se conoce como depuración o 'debugging'." }
+                ],
+                "M4: Sistemas Operativos": [
+                    { question: "¿Cuál es la función principal del kernel de un sistema operativo?", type: "multiple-choice", options: [ { text: "Gestionar los recursos de hardware del sistema.", correct: true }, { text: "Proporcionar la interfaz gráfica de usuario (GUI).", correct: false }, { text: "Ejecutar aplicaciones de software de productividad.", correct: false }, { text: "Conectar el computador a internet.", correct: false } ], rationale: "El kernel es el núcleo del SO que actúa como intermediario entre el software y el hardware (CPU, memoria, dispositivos)." },
+                    { question: "En la línea de comandos de GNU/Linux, el comando `cd` se utiliza para crear un nuevo directorio.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "El comando `cd` (Change Directory) se usa para cambiar el directorio actual. Para crear uno nuevo se usa `mkdir` (Make Directory)." },
+                    { question: "¿Qué servicio de Cloud Computing ofrece infraestructura de TI (servidores, almacenamiento, redes) bajo demanda?", type: "multiple-choice", options: [ { text: "IaaS (Infraestructura como Servicio)", correct: true }, { text: "PaaS (Plataforma como Servicio)", correct: false }, { text: "SaaS (Software como Servicio)", correct: false }, { text: "On-Premise", correct: false } ], rationale: "Con IaaS, las empresas alquilan la infraestructura en lugar de comprar y mantener sus propios servidores físicos." },
+                    { question: "Una Máquina Virtual (VM) permite ejecutar múltiples sistemas operativos en un único computador físico.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Las VM emulan un sistema de hardware completo, lo que permite instalar un SO 'invitado' dentro del SO 'anfitrión'." },
+                    { question: "¿Qué es un sistema de archivos (file system)?", type: "multiple-choice", options: [ { text: "La estructura que un SO utiliza para organizar y gestionar archivos en un disco.", correct: true }, { text: "Un programa para comprimir y descomprimir archivos.", correct: false }, { text: "La parte del SO que gestiona la memoria RAM.", correct: false }, { text: "Una aplicación para navegar por internet.", correct: false } ], rationale: "Ejemplos de sistemas de archivos son NTFS (Windows), APFS (macOS) y ext4 (Linux)." },
+                    { question: "En GNU/Linux, el comando `pwd` se utiliza para:", type: "multiple-choice", options: [ { text: "Mostrar el directorio de trabajo actual.", correct: true }, { text: "Cambiar la contraseña de un usuario.", correct: false }, { text: "Apagar el sistema.", correct: false }, { text: "Listar los procesos en ejecución.", correct: false } ], rationale: "`pwd` significa 'Print Working Directory' e imprime la ruta completa del directorio en el que te encuentras." },
+                    { question: "La multitarea (multitasking) es la capacidad de un SO para ejecutar varios procesos simultáneamente.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Los SO modernos gestionan el tiempo de la CPU para dar la ilusión de que múltiples aplicaciones se ejecutan al mismo tiempo." },
+                    { question: "La GUI (Graphical User Interface) se basa en la interacción del usuario a través de comandos de texto.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "La GUI utiliza elementos visuales como iconos, ventanas y botones. La interacción basada en texto corresponde a la CLI (Command-Line Interface)." },
+                    { question: "¿Cuál de estos es un ejemplo de un sistema operativo de código abierto?", type: "multiple-choice", options: [ { text: "Linux", correct: true }, { text: "Windows 10", correct: false }, { text: "macOS", correct: false }, { text: "iOS", correct: false } ], rationale: "El código fuente de Linux está disponible públicamente para que cualquiera pueda verlo, modificarlo y distribuirlo." },
+                    { question: "En Linux, el comando `rm` se utiliza para:", type: "multiple-choice", options: [ { text: "Eliminar archivos y directorios.", correct: true }, { text: "Renombrar archivos.", correct: false }, { text: "Copiar archivos.", correct: false }, { text: "Mover archivos.", correct: false } ], rationale: "`rm` es la abreviatura de 'remove' y es una herramienta poderosa para borrar archivos de forma permanente." },
+                    { question: "El 'swap' o espacio de intercambio es un área del disco duro que el SO utiliza como si fuera memoria RAM.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Cuando la memoria RAM física se llena, el SO mueve los datos menos utilizados al espacio de intercambio para liberar RAM." }
+                ]
+            },
+            "Cuarto Medio": {
+                "M5: Diseño de Bases de Datos Relacionales": [
+                    { question: "¿Cuál es el propósito de una Clave Primaria (Primary Key)?", type: "multiple-choice", options: [ { text: "Identificar de forma única cada registro en una tabla.", correct: true }, { text: "Conectar dos tablas diferentes.", correct: false }, { text: "Ordenar los resultados de una consulta.", correct: false }, { text: "Almacenar datos de gran tamaño.", correct: false } ], rationale: "Una clave primaria no puede contener valores nulos y debe ser única para cada fila, como el RUT de una persona." },
+                    { question: "La normalización de bases de datos busca principalmente reducir la redundancia de datos.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Al reducir la redundancia, la normalización también mejora la integridad de los datos y evita anomalías de actualización." },
+                    { question: "Una Clave Foránea (Foreign Key) en la tabla 'Pedidos' que hace referencia a la tabla 'Clientes' sirve para:", type: "multiple-choice", options: [ { text: "Asegurar que cada pedido esté asociado a un cliente que existe.", correct: true }, { text: "Hacer que la tabla 'Pedidos' sea más rápida.", correct: false }, { text: "Identificar de forma única cada pedido.", correct: false }, { text: "Almacenar la dirección del cliente en la tabla de pedidos.", correct: false } ], rationale: "Establece una relación entre las dos tablas, manteniendo la integridad referencial." },
+                    { question: "En un Modelo Entidad-Relación, un rombo representa:", type: "multiple-choice", options: [ { text: "Una relación", correct: true }, { text: "Una entidad", correct: false }, { text: "Un atributo", correct: false }, { text: "Una cardinalidad", correct: false } ], rationale: "El rombo conecta dos o más entidades para describir cómo interactúan entre sí, como 'un Cliente REALIZA un Pedido'." },
+                    { question: "La cardinalidad 'Muchos a Muchos' entre 'Estudiantes' y 'Cursos' se implementa con una tabla intermedia.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Se crea una tabla 'Inscripciones' con claves foráneas a Estudiantes y Cursos para modelar que un estudiante puede tomar muchos cursos y un curso puede tener muchos estudiantes." },
+                    { question: "¿Qué comando pertenece al DML (Data Manipulation Language)?", type: "multiple-choice", options: [ { text: "INSERT", correct: true }, { text: "CREATE", correct: false }, { text: "ALTER", correct: false }, { text: "DROP", correct: false } ], rationale: "DML se usa para manipular los datos dentro de las tablas (INSERT, UPDATE, DELETE), mientras que DDL (CREATE, ALTER) define la estructura." },
+                    { question: "La Primera Forma Normal (1FN) establece que cada columna de una tabla debe contener valores atómicos.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Esto significa que una celda no puede contener múltiples valores, como una lista de números de teléfono en un solo campo." },
+                    { question: "¿Cuál es el propósito de la sentencia `SELECT` en SQL?", type: "multiple-choice", options: [ { text: "Recuperar datos de una o más tablas.", correct: true }, { text: "Modificar la estructura de una tabla.", correct: false }, { text: "Eliminar una tabla de la base de datos.", correct: false }, { text: "Añadir nuevos datos a una tabla.", correct: false } ], rationale: "Es el comando fundamental para realizar consultas y obtener información de la base de datos." },
+                    { question: "Una dependencia transitiva, que la 3FN busca eliminar, ocurre cuando un atributo no clave depende de otro atributo no clave.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Por ejemplo, si el precio depende del producto y el descuento depende del precio; aquí, el descuento tiene una dependencia transitiva de la clave del producto." },
+                    { question: "La cláusula `WHERE` en una consulta SQL se usa para:", type: "multiple-choice", options: [ { text: "Filtrar los registros que cumplen una condición específica.", correct: true }, { text: "Ordenar los resultados.", correct: false }, { text: "Agrupar los resultados.", correct: false }, { text: "Unir dos tablas.", correct: false } ], rationale: "Permite especificar criterios para seleccionar solo las filas que son de interés en una consulta." },
+                    { question: "El Modelo Entidad-Relación es un diagrama conceptual que representa la estructura de una base de datos.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Sirve como un plano para diseñar la base de datos antes de crear las tablas reales en un SGBD." }
+                ],
+                "M6: Programación Orientada a Objetos (POO)": [
+                    { question: "El principio que consiste en ocultar los detalles de implementación de un objeto y exponer solo una interfaz pública se llama:", type: "multiple-choice", options: [ { text: "Encapsulamiento", correct: true }, { text: "Herencia", correct: false }, { text: "Polimorfismo", correct: false }, { text: "Abstracción", correct: false } ], rationale: "El encapsulamiento protege los datos de un objeto del acceso no autorizado, agrupando datos y métodos en una 'cápsula'." },
+                    { question: "Una clase es una instancia de un objeto.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "Es al revés: un objeto es una instancia de una clase. La clase es el 'plano' y el objeto es la 'casa' construida a partir de ese plano." },
+                    { question: "¿Qué permite el polimorfismo?", type: "multiple-choice", options: [ { text: "Que un objeto pueda tomar muchas formas o comportarse de manera diferente según el contexto.", correct: true }, { text: "Que una clase pueda heredar propiedades de otra.", correct: false }, { text: "Agrupar datos y métodos en una sola unidad.", correct: false }, { text: "Crear una representación simplificada de un objeto complejo.", correct: false } ], rationale: "Por ejemplo, un método `hacerSonido()` puede ser implementado de forma diferente por un objeto `Perro` y un objeto `Gato`." },
+                    { question: "La herencia promueve la reutilización de código.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Permite que una nueva clase (subclase) herede atributos y métodos de una clase existente (superclase), evitando reescribir código." },
+                    { question: "¿Qué es un constructor en una clase?", type: "multiple-choice", options: [ { text: "Un método especial que se llama al crear una nueva instancia (objeto) de la clase.", correct: true }, { text: "Un método que destruye un objeto cuando ya no se necesita.", correct: false }, { text: "Una variable que almacena el número de objetos creados.", correct: false }, { text: "La primera línea de código en la definición de una clase.", correct: false } ], rationale: "El constructor se usa típicamente para inicializar los atributos del objeto con valores iniciales." },
+                    { question: "La abstracción en POO se refiere a:", type: "multiple-choice", options: [ { text: "Mostrar solo las características esenciales de un objeto, ocultando la complejidad.", correct: true }, { text: "La capacidad de un objeto de heredar de múltiples clases.", correct: false }, { text: "La creación de pruebas unitarias para cada método.", correct: false }, { text: "Convertir un objeto a una cadena de texto para su visualización.", correct: false } ], rationale: "Al conducir un auto, usas el volante y los pedales (abstracción), sin necesidad de conocer el funcionamiento interno del motor." },
+                    { question: "Sobrecargar un método (Overloading) significa definir varios métodos con el mismo nombre pero con diferentes parámetros en la misma clase.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Esto permite tener, por ejemplo, un método `sumar(int, int)` y otro `sumar(double, double)`." },
+                    { question: "¿Qué es un atributo en una clase?", type: "multiple-choice", options: [ { text: "Una variable que almacena datos o características de un objeto.", correct: true }, { text: "Una función que define el comportamiento de un objeto.", correct: false }, { text: "El nombre de la clase.", correct: false }, { text: "Un archivo que contiene el código de la clase.", correct: false } ], rationale: "Por ejemplo, en una clase `Persona`, los atributos podrían ser `nombre`, `edad` y `dirección`." },
+                    { question: "Sobrescribir un método (Overriding) ocurre cuando una subclase proporciona una implementación específica para un método que ya está definido en su superclase.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Esto permite a la subclase modificar o extender el comportamiento heredado." },
+                    { question: "JUnit es un framework para realizar pruebas unitarias en Java.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Las pruebas unitarias son esenciales para verificar que cada pequeña parte del código funcione correctamente de forma aislada." },
+                    { question: "En POO, la composición es una forma de reutilizar código donde un objeto contiene a otro objeto.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Por ejemplo, un objeto `Auto` 'tiene un' objeto `Motor`. Es una relación de tipo 'tiene-un', a diferencia de la herencia que es 'es-un'." },
+                    { question: "El enlace dinámico (dynamic binding) se asocia principalmente con el polimorfismo.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Significa que la decisión de qué método específico ejecutar se toma en tiempo de ejecución, no en tiempo de compilación." }
+                ],
+                "M7: Administración de Bases de Datos": [
+                    { question: "Un 'trigger' (disparador) en una base de datos es un procedimiento que se ejecuta automáticamente cuando ocurre un evento DML (INSERT, UPDATE, DELETE).", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Los triggers son útiles para mantener la integridad de los datos, registrar auditorías o aplicar lógica de negocio compleja." },
+                    { question: "¿Qué es un Procedimiento Almacenado (Stored Procedure)?", type: "multiple-choice", options: [ { text: "Un conjunto de sentencias SQL precompiladas y almacenadas en la base de datos.", correct: true }, { text: "Una copia de seguridad de la base de datos.", correct: false }, { text: "Una tabla temporal que contiene el resultado de una consulta.", correct: false }, { text: "Un índice que acelera las búsquedas de datos.", correct: false } ], rationale: "Permiten reutilizar lógica, mejorar la seguridad y reducir el tráfico de red, ya que se ejecutan directamente en el servidor." },
+                    { question: "¿Cuál es el propósito principal de crear un índice en una tabla?", type: "multiple-choice", options: [ { text: "Acelerar la velocidad de las consultas de recuperación de datos.", correct: true }, { text: "Asegurar que los datos en la tabla sean únicos.", correct: false }, { text: "Reducir el espacio de almacenamiento utilizado por la tabla.", correct: false }, { text: "Realizar cálculos complejos sobre los datos.", correct: false } ], rationale: "Un índice funciona de manera similar al índice de un libro, permitiendo al motor de la base de datos encontrar filas rápidamente." },
+                    { question: "En PL/SQL, una función debe retornar un valor, mientras que un procedimiento no necesariamente lo hace.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Las funciones se usan para realizar cálculos y devolver un resultado, mientras que los procedimientos se usan para ejecutar una serie de acciones." },
+                    { question: "Los comandos `GRANT` y `REVOKE` en SQL pertenecen a qué sublenguaje?", type: "multiple-choice", options: [ { text: "DCL (Data Control Language)", correct: true }, { text: "DDL (Data Definition Language)", correct: false }, { text: "DML (Data Manipulation Language)", correct: false }, { text: "TCL (Transaction Control Language)", correct: false } ], rationale: "DCL se encarga de la gestión de permisos y control de acceso a la base de datos." },
+                    { question: "Una transacción en una base de datos es una secuencia de operaciones que se trata como una única unidad lógica de trabajo.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Una transacción debe ser atómica: o se completan todas sus operaciones con éxito, o no se completa ninguna (rollback)." },
+                    { question: "En PL/SQL, un 'package' (paquete) es una estructura que agrupa lógicamente:", type: "multiple-choice", options: [ { text: "Procedimientos, funciones, variables y tipos relacionados.", correct: true }, { text: "Múltiples tablas de una base de datos.", correct: false }, { text: "Los archivos de respaldo de la base de datos.", correct: false }, { text: "Los usuarios y sus permisos.", correct: false } ], rationale: "Los paquetes ayudan a organizar el código, mejorar el rendimiento y controlar la visibilidad de sus componentes." },
+                    { question: "La lógica de negocio se refiere a las reglas y procesos que dictan cómo una empresa opera.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "En la administración de bases de datos, esta lógica se puede implementar mediante triggers, procedimientos almacenados y constraints." },
+                    { question: "¿Qué es una 'vista' (view) en SQL?", type: "multiple-choice", options: [ { text: "Una tabla virtual basada en el resultado de una consulta SELECT.", correct: true }, { text: "Un registro de todos los cambios realizados en una tabla.", correct: false }, { text: "Una copia física de una tabla.", correct: false }, { text: "Un permiso especial para acceder a datos sensibles.", correct: false } ], rationale: "Las vistas pueden simplificar consultas complejas y proporcionar una capa de seguridad al restringir el acceso a ciertas columnas o filas." },
+                    { question: "El objetivo de las propiedades ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad) es garantizar la fiabilidad de las transacciones.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Estas cuatro propiedades aseguran que las transacciones se procesen de manera fiable incluso en caso de errores o fallos del sistema." },
+                    { question: "SQL Developer y Oracle 11g Express son herramientas relacionadas con la administración de bases de datos Oracle.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "SQL Developer es un IDE para trabajar con bases de datos Oracle, y 11g Express es una edición gratuita del motor de base de datos." }
+                ],
+                "M8: Desarrollo de Aplicaciones Web": [
+                    { question: "¿Cuál es la función principal de HTML (HyperText Markup Language)?", type: "multiple-choice", options: [ { text: "Estructurar el contenido de una página web.", correct: true }, { text: "Dar estilo y presentación visual a la página.", correct: false }, { text: "Añadir interactividad y comportamiento dinámico.", correct: false }, { text: "Gestionar la base de datos del servidor.", correct: false } ], rationale: "HTML usa etiquetas para definir elementos como títulos, párrafos, imágenes y enlaces, formando el esqueleto de la página." },
+                    { question: "CSS se utiliza para controlar la presentación, el formato y el diseño de una página web.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "CSS (Cascading Style Sheets) es el lenguaje que nos permite aplicar estilos, como colores, fuentes y espaciado, a los elementos HTML." },
+                    { question: "¿Qué lenguaje se ejecuta en el navegador del cliente para añadir interactividad a una página web?", type: "multiple-choice", options: [ { text: "JavaScript", correct: true }, { text: "Python", correct: false }, { text: "PHP", correct: false }, { text: "SQL", correct: false } ], rationale: "JavaScript es el lenguaje de scripting del lado del cliente que permite crear contenido dinámico, validar formularios y responder a las acciones del usuario." },
+                    { question: "Un sitio web estático muestra el mismo contenido a todos los usuarios y su contenido no cambia a menos que se modifique manualmente el código fuente.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "En contraste, un sitio dinámico puede generar contenido personalizado para cada usuario, a menudo interactuando con una base de datos." },
+                    { question: "¿Qué es un CMS (Content Management System) como WordPress?", type: "multiple-choice", options: [ { text: "Una plataforma que permite crear y gestionar un sitio web sin necesidad de programar desde cero.", correct: true }, { text: "Un lenguaje de programación para el desarrollo de servidores.", correct: false }, { text: "Un tipo de servicio de hosting web.", correct: false }, { text: "Un protocolo para transferir archivos a un servidor.", correct: false } ], rationale: "Los CMS facilitan la publicación de contenido a través de una interfaz amigable, separando el contenido del diseño." },
+                    { question: "El protocolo FTP (File Transfer Protocol) se utiliza para:", type: "multiple-choice", options: [ { text: "Subir y descargar archivos de un servidor web.", correct: true }, { text: "Navegar por páginas web de forma segura.", correct: false }, { text: "Enviar y recibir correos electrónicos.", correct: false }, { text: "Realizar consultas a una base de datos.", correct: false } ], rationale: "Es el método comúnmente usado para publicar los archivos de un sitio web en el servidor de hosting." },
+                    { question: "Un 'dominio' en el contexto web es la dirección única y legible por humanos de un sitio web (ej. 'google.com').", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "El dominio se traduce a una dirección IP a través del sistema DNS para que el navegador pueda localizar el servidor correcto." },
+                    { question: "PHP y Python son lenguajes que se ejecutan típicamente en el lado del servidor.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "El código del lado del servidor se ejecuta en el servidor web para procesar datos, interactuar con bases de datos y generar el HTML que se envía al cliente." },
+                    { question: "¿Para qué se utiliza la etiqueta `<a>` en HTML?", type: "multiple-choice", options: [ { text: "Para crear hipervínculos (links).", correct: true }, { text: "Para insertar una imagen.", correct: false }, { text: "Para definir un párrafo de texto.", correct: false }, { text: "Para crear una tabla.", correct: false } ], rationale: "La etiqueta `<a>`, junto con su atributo `href`, es la base de la navegación en la web." },
+                    { question: "El 'hosting' se refiere al servicio que provee el espacio en servidores para almacenar los archivos de un sitio web y hacerlo accesible en internet.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Cuando un usuario visita tu dominio, el servicio de hosting entrega los archivos de tu sitio a su navegador." },
+                    { question: "El diseño 'responsive' o adaptable busca que un sitio web se vea y funcione bien en una variedad de dispositivos y tamaños de pantalla.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Se logra principalmente con técnicas de CSS como las 'media queries' y los diseños flexibles." }
+                ],
+                 "M9: Emprendimiento y Empleabilidad": [
+                    { question: "¿Cuál es el propósito principal de un Curriculum Vitae (CV)?", type: "multiple-choice", options: [ { text: "Presentar un resumen de la experiencia, educación y habilidades a un empleador.", correct: true }, { text: "Redactar un plan de negocios detallado.", correct: false }, { text: "Firmar un contrato de trabajo.", correct: false }, { text: "Solicitar un crédito de consumo.", correct: false } ], rationale: "El CV es tu herramienta de marketing personal para conseguir una entrevista de trabajo." },
+                    { question: "Un análisis FODA (Fortalezas, Oportunidades, Debilidades, Amenazas) se utiliza para:", type: "multiple-choice", options: [ { text: "Evaluar la situación estratégica de un proyecto o empresa.", correct: true }, { text: "Calcular los costos iniciales de un emprendimiento.", correct: false }, { text: "Diseñar la interfaz de una aplicación móvil.", correct: false }, { text: "Escribir el código de un programa.", correct: false } ], rationale: "Permite identificar factores internos (Fortalezas, Debilidades) y externos (Oportunidades, Amenazas) para una mejor toma de decisiones." },
+                    { question: "Las 'habilidades blandas' (soft skills) se refieren a conocimientos técnicos específicos de un área.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "Las habilidades blandas son atributos personales como la comunicación, el trabajo en equipo y la resolución de problemas. Las habilidades técnicas son las 'duras'." },
+                    { question: "¿Qué es el 'mercado objetivo' (target market)?", type: "multiple-choice", options: [ { text: "El grupo específico de consumidores al que una empresa dirige sus productos y marketing.", correct: true }, { text: "Todos los competidores en una industria.", correct: false }, { text: "La ubicación física de una tienda.", correct: false }, { text: "El precio final de un producto.", correct: false } ], rationale: "Definir el mercado objetivo es crucial para enfocar los esfuerzos de marketing de manera efectiva." },
+                    { question: "El 'networking' o creación de redes de contacto es importante para la empleabilidad.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Construir relaciones profesionales puede abrir puertas a nuevas oportunidades laborales y colaboraciones." },
+                    { question: "¿Qué es un 'elevator pitch'?", type: "multiple-choice", options: [ { text: "Un discurso breve y persuasivo que resume una idea de negocio.", correct: true }, { text: "Un documento legal para registrar una marca.", correct: false }, { text: "El informe financiero anual de una empresa.", correct: false }, { text: "Una técnica para negociar salarios.", correct: false } ], rationale: "Debe ser lo suficientemente corto como para ser contado durante un viaje en ascensor, de ahí su nombre." },
+                    { question: "La diferencia principal entre el sueldo bruto y el sueldo líquido es que el líquido es el monto después de los descuentos legales (salud, AFP).", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "El sueldo bruto es el total antes de las deducciones, y el líquido es el dinero que efectivamente recibe el trabajador." },
+                    { question: "Un contrato de trabajo en Chile debe ser escriturado por el empleador.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "La ley chilena exige que el contrato de trabajo conste por escrito para dar certeza a la relación laboral." },
+                    { question: "Una entrevista de trabajo es principalmente una oportunidad para que el empleador te evalúe, no para que tú evalúes a la empresa.", type: "true-false", options: [ { text: "Falso", correct: true }, { text: "Verdadero", correct: false } ], rationale: "Es una conversación bidireccional. Es tu oportunidad para determinar si la cultura y el rol en la empresa son adecuados para ti." },
+                    { question: "¿Cuál de las siguientes es una plataforma de e-learning o capacitación en línea?", type: "multiple-choice", options: [ { text: "Coursera", correct: true }, { text: "LinkedIn", correct: false }, { text: "GitHub", correct: false }, { text: "Trello", correct: false } ], rationale: "Plataformas como Coursera, Udemy o edX ofrecen cursos en línea sobre una amplia variedad de temas para el desarrollo profesional." },
+                    { question: "La 'propuesta de valor' de un emprendimiento es lo que lo diferencia de la competencia y lo hace atractivo para los clientes.", type: "true-false", options: [ { text: "Verdadero", correct: true }, { text: "Falso", correct: false } ], rationale: "Responde a la pregunta: ¿Por qué un cliente debería elegir tu producto o servicio en lugar del de otro?" }
+                ]
+            }
+        };
+
+        let currentYear = '';
+        let currentModule = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const startScreen = document.getElementById('start-screen');
+        const yearSelectionDiv = document.getElementById('year-selection');
+        const moduleSelectionScreen = document.getElementById('module-selection-screen');
+        const moduleSelectionTitle = document.getElementById('module-selection-title');
+        const moduleButtonsDiv = document.getElementById('module-buttons');
+        const quizScreen = document.getElementById('quiz-screen');
+        const quizTitle = document.getElementById('quiz-title');
+        const questionCounter = document.getElementById('question-counter');
+        const questionContainer = document.getElementById('question-container');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const resultsScreen = document.getElementById('results-screen');
+        const scoreText = document.getElementById('score-text');
+        const scorePercentage = document.getElementById('score-percentage');
+
+        function initialize() {
+            // Crear botones de selección de año
+            yearSelectionDiv.innerHTML = '';
+            Object.keys(quizData).forEach(year => {
+                const button = document.createElement('button');
+                button.textContent = year;
+                button.className = 'btn-primary text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg w-full md:w-auto';
+                button.onclick = () => selectYear(year);
+                yearSelectionDiv.appendChild(button);
+            });
+            showScreen('start-screen');
+        }
+
+        function selectYear(year) {
+            currentYear = year;
+            moduleSelectionTitle.textContent = `Selecciona un Módulo de ${year}`;
+            
+            // Crear botones de selección de módulo
+            moduleButtonsDiv.innerHTML = '';
+            Object.keys(quizData[year]).forEach(module => {
+                const button = document.createElement('button');
+                button.textContent = module;
+                button.className = 'w-full text-left p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200';
+                button.onclick = () => startQuiz(module);
+                moduleButtonsDiv.appendChild(button);
+            });
+            
+            showScreen('module-selection-screen');
+        }
+
+        function startQuiz(module) {
+            currentModule = module;
+            currentQuestions = quizData[currentYear][currentModule];
+            currentQuestionIndex = 0;
+            score = 0;
+            quizTitle.textContent = module;
+            showScreen('quiz-screen');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            questionContainer.innerHTML = `<p class="text-xl md:text-2xl text-gray-700 font-medium">${question.question}</p>`;
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerHTML = option.text;
+                button.className = 'option-btn w-full text-left p-4 bg-white rounded-lg border-2 border-gray-200 text-gray-700';
+                button.onclick = () => selectAnswer(button, option.correct, question.rationale);
+                optionsContainer.appendChild(button);
+            });
+            
+            questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${currentQuestions.length}`;
+            feedbackContainer.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+        }
+
+        function selectAnswer(selectedButton, isCorrect, rationale) {
+            // Deshabilitar todas las opciones
+            const optionButtons = optionsContainer.querySelectorAll('button');
+            optionButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                selectedButton.classList.add('correct');
+                score++;
+            } else {
+                selectedButton.classList.add('incorrect');
+                // Encontrar y resaltar la respuesta correcta
+                const correctOptionIndex = currentQuestions[currentQuestionIndex].options.findIndex(opt => opt.correct);
+                optionButtons[correctOptionIndex].classList.add('correct');
+            }
+            
+            // Mostrar retroalimentación
+            feedbackContainer.innerHTML = `<p class="font-semibold mb-1">Retroalimentación:</p><p>${rationale}</p>`;
+            feedbackContainer.classList.remove('hidden');
+            feedbackContainer.classList.add('fade-in');
+
+            // Mostrar el botón de siguiente pregunta
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                nextQuestionBtn.textContent = 'Siguiente Pregunta';
+            } else {
+                nextQuestionBtn.textContent = 'Ver Resultados Finales';
+            }
+            nextQuestionBtn.classList.remove('hidden');
+            nextQuestionBtn.onclick = () => {
+                 currentQuestionIndex < currentQuestions.length - 1 ? nextQuestion() : showResults();
+            };
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+        
+        function showResults() {
+            const percentage = Math.round((score / currentQuestions.length) * 100);
+            scoreText.textContent = `${score} / ${currentQuestions.length}`;
+            scorePercentage.textContent = `Obtuviste un ${percentage}% de aciertos.`;
+            showScreen('results-screen');
+        }
+        
+        function restartQuiz() {
+            startQuiz(currentModule);
+        }
+
+        function goBack(screenId) {
+            if (screenId === 'start-screen') {
+                 showScreen('start-screen');
+            } else if (screenId === 'module-selection-screen') {
+                 showScreen('module-selection-screen');
+            }
+        }
+
+        function showScreen(screenId) {
+            [startScreen, moduleSelectionScreen, quizScreen, resultsScreen].forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById(screenId).classList.add('fade-in');
+        }
+
+        // Inicializar la aplicación
+        initialize();
+    </script>
+
+</body>
+</html>
