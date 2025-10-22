@@ -1,0 +1,2 @@
+# bancoPreguntasTipoExamen
+banco preguntas
